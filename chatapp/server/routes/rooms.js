@@ -17,6 +17,15 @@ router.post('/', async (req, res) => {
   const { name, description, created_by } = req.body;
   if (!name) return res.status(400).json({ error: 'Room name is required' });
 
+  // Check if room already exists
+  const { data: existing } = await supabase
+    .from('rooms')
+    .select('id')
+    .eq('name', name.toLowerCase().replace(/\s+/g, '-'))
+    .single();
+
+  if (existing) return res.status(400).json({ error: 'A room with that name already exists' });
+
   const { data, error } = await supabase
     .from('rooms')
     .insert({ name: name.toLowerCase().replace(/\s+/g, '-'), description, created_by })
